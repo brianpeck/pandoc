@@ -248,6 +248,16 @@ toSlides bs = do
 elementToBeamer :: Int -> Element -> State WriterState [Block]
 elementToBeamer _slideLevel (Blk b) = return [b]
 elementToBeamer slideLevel  (Sec lvl _num (ident,classes,kvs) tit elts)
+  | lvl == 5 = do
+      bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
+      return $ Para ( RawInline "latex" "\\column{.5\\textwidth}\n\\begin{block}{"
+                    : tit ++ [RawInline "latex" "}"] )
+             : bs ++ [RawBlock "latex" "\\end{block}"]
+  | lvl == 4 = do
+      bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
+      return $ Para ( RawInline "latex" "\\begin{columns}"
+                    : tit ++ [RawInline "latex" ""] )
+             : bs ++ [RawBlock "latex" "\\end{columns}"]
   | lvl >  slideLevel = do
       bs <- concat `fmap` mapM (elementToBeamer slideLevel) elts
       return $ Para ( RawInline "latex" "\\begin{block}{"
